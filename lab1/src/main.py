@@ -13,6 +13,17 @@ class TicTacDoh(TwoPlayerGame):
     Args:
         TwoPlayerGame (base class): Base class for two-player games. It provides a simple interface for the game to be played.
     """
+    
+    WIN_LINES = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],  
+        [1, 4, 7],
+        [2, 5, 8],
+        [3, 6, 9],  
+        [1, 5, 9],
+        [3, 5, 7],
+    ]
 
     def __init__(self, players: List) -> None:
         """Initializes the game with the players and the board.
@@ -52,31 +63,20 @@ class TicTacDoh(TwoPlayerGame):
         Returns:
             bool: True if the game is over, False otherwise.
         """
-        return self.check_win() or len(self.possible_moves()) == 0
+        return self.lose() or self.lose(player=self.current_player) or len(self.possible_moves()) == 0
 
-    def check_win(self) -> bool:
-        """Checks if the current player has won the game.
-
-        Returns:
-            bool: True if the current player has won, False otherwise.
+    def lose(self, player=None) -> bool:
+        """Checks if the current player has lost.
+        
+        Args:
+            player (int, optional): The player to check. Defaults to None.
         """
-        # FIXME: Should be from opponents perspective I think .. not sure though
 
-        board = self.board.reshape(3, 3)
-        target_array = [self.current_player for _ in range(3)]
-
-        for row in range(3):
-            if all(np.equal(board[row, :], target_array)):
-                return True
+        if player is None:
+            player = self.opponent_index
         
-        for col in range(3):
-            if all(np.equal(board[:, col], target_array)):
-                return True
-            
-        if all(np.equal(board.diagonal(), target_array)) or all(np.equal(np.fliplr(board).diagonal, target_array)):
-            return True
-        
-        return False
+        wins = [all([(self.board[c - 1] == player) for c in line]) for line in self.WIN_LINES]
+        return any(wins)
 
     def scoring(self) -> int:
         """Returns the score of the current player.
@@ -84,26 +84,21 @@ class TicTacDoh(TwoPlayerGame):
         Returns:
             int: The score of the current player.
         """
-        # FIXME: This is not working
-        return -100 if self.check_win else 0
-    
-    def play(self) -> Tuple[int, List[int]]:
-        """Starts the game.
+        opp_won = self.lose()
+        i_won = self.lose(player=self.current_player)
 
-        Returns:
-            Tuple[int, List[int]]: The winner and the board.
-        """
-        
-        print("\nPlayer 1: X\nPlayer 2: O")
-        print("=====================\n")
+        if opp_won and not i_won:
+            return -100
+        if i_won and not opp_won:
+            return 100
+        return 0
 
-        while not self.is_over():
-            move = self.get_move()
-            self.play_move(move)
-            self.show()
-
-        print("Player", self.current_player, "wins")
-        return (self.current_player, self.board)
+    def winner(self):
+        if self.lose(who=2):
+            return "AI-1 Wins!"
+        elif self.lose(who=1):
+            return "AI-2 Wins!"
+        return "Tie"
     
     def show(self) -> None:
         """Prints the board.
@@ -121,6 +116,22 @@ class TicTacDoh(TwoPlayerGame):
         print('\n'.join((a, b, e, c, e, d, f)))
         print('\n\n')
 
+    def play(self) -> Tuple[int, List[int]]:
+        """Starts the game.
+
+        Returns:
+            Tuple[int, List[int]]: The winner and the board.
+        """
+        
+        print("\nPlayer 1: X\nPlayer 2: O")
+        print("=====================\n")
+
+        while not self.is_over():
+            move = self.get_move()
+            self.play_move(move)
+            self.show()
+
+        return (self.opponent_index, self.board)
 
 class Test:
     
