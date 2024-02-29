@@ -33,7 +33,9 @@ class TicTacDoh(TwoPlayerGame):
         """
         self.board = np.zeros(9, np.uint8)
         self.players = players
-        self.current_player = 1
+        self.current_player = random.randint(1, 2)
+        print("First player: ", end="")
+        print(self.current_player)
 
     def possible_moves(self) -> np.ndarray:
         """Returns the possible moves for the current player.
@@ -141,7 +143,7 @@ class Test:
         self.scores = []
 
     def start(self):
-        # TODO: Make the players switch between each other after each game
+        # TODO: Make the players switch between each other after each game - DONE
         # TODO: Switch max_depth between 3 and 6 for each game
         player_1 = AI_Player(self.ai_algo)
         player_2 = AI_Player(self.ai_algo)
@@ -152,4 +154,4 @@ class Test:
             self.scores.append(score)
 
 if __name__ == "__main__":
-    test = Test(1).start()
+    test = Test(3).start()
