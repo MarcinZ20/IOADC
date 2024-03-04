@@ -1,5 +1,7 @@
 import random
 import numpy as np
+import time
+
 
 from typing import List, Tuple
 from easyAI import Negamax
@@ -25,7 +27,7 @@ class TicTacDoh(TwoPlayerGame):
         [3, 5, 7],
     ]
 
-    def __init__(self, players: List) -> None:
+    def __init__(self, players: List, variant="probabilistic") -> None:
         """Initializes the game with the players and the board.
 
         Args:
@@ -34,8 +36,13 @@ class TicTacDoh(TwoPlayerGame):
         self.board = np.zeros(9, np.uint8)
         self.players = players
         self.current_player = random.randint(1, 2)
-        print("First player: ", end="")
-        print(self.current_player)
+        self.av_move_time = 0
+        self.moves_number = 0
+        self.variant = variant
+        self.move_weights = [0.8, 0.2]
+        self.do_next_move = True
+        # print("First player: ", end="")
+        # print(self.current_player)
 
     def possible_moves(self) -> np.ndarray:
         """Returns the possible moves for the current player.
@@ -51,13 +58,15 @@ class TicTacDoh(TwoPlayerGame):
         Args:
             move (int): The move to be made.
         """
-        moves = [True, False]
-        weights = [0.8, 0.2]
-
-        move_is_success = random.choices(moves, weights, k=1)[0]
-
-        if move_is_success:
+        if self.do_next_move:
             self.board[move - 1] = self.current_player
+
+    def draw_next_move(self):
+        moves = [True, False]
+        if self.variant == 'probabilistic':
+            self.do_next_move = random.choices(moves, self.move_weights, k=1)[0]
+        else:
+            self.do_next_move = True
 
     def is_over(self) -> bool:
         """Checks if the game is over.
@@ -116,42 +125,78 @@ class TicTacDoh(TwoPlayerGame):
 
         print("MOVE BY PLAYER: ", self.opponent_index) # Opponent because we call show after change of the current_player
         print('\n'.join((a, b, e, c, e, d, f)))
+        print('Average move time: ', end='')
+        print(round(self.av_move_time, 5))
         print('\n\n')
 
-    def play(self) -> Tuple[int, List[int]]:
+    def play(self, verbose=True) -> Tuple[int, List[int]]:
         """Starts the game.
 
         Returns:
             Tuple[int, List[int]]: The winner and the board.
         """
         
-        print("\nPlayer 1: X\nPlayer 2: O")
-        print("=====================\n")
+        # print("\nPlayer 1: X\nPlayer 2: O")
+        # print("=====================\n")
 
         while not self.is_over():
-            move = self.get_move()
-            self.play_move(move)
-            self.show()
+            self.draw_next_move()
+            if self.do_next_move:
+                begin = time.time()
+                move = self.get_move()
+                end = time.time()
+                new_time = end-begin
+                old_av_time = self.av_move_time * self.moves_number
+                self.moves_number += 1
+                old_av_time += new_time
+                self.av_move_time = old_av_time / self.moves_number
+                self.play_move(move)
+            else:
+                self.switch_player()
+            if verbose:
+                self.show()
 
-        return (self.opponent_index, self.board)
+        if not self.lose():
+            return (0, self.board)
+        else:
+            return (self.opponent_index, self.board)
 
 class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Negamax(6)
+        self.ai_algo = Negamax(3)
         self.scores = []
 
-    def start(self):
-        # TODO: Make the players switch between each other after each game - DONE
+    def start(self, variant='probabilistic', verbose=True):
         # TODO: Switch max_depth between 3 and 6 for each game
         player_1 = AI_Player(self.ai_algo)
         player_2 = AI_Player(self.ai_algo)
 
         for _ in range(self.number_of_games):
-            game = TicTacDoh(players=[player_1, player_2])
-            score = game.play()
+            game = TicTacDoh(players=[player_1, player_2], variant=variant)
+            score = game.play(verbose=verbose)
             self.scores.append(score)
 
+    def analyze_scores(self):
+        player1_win_counter = 0
+        player2_win_counter = 0
+        draws_counter = 0
+
+        for score in self.scores:
+            if score[0] == 1:
+                player1_win_counter += 1
+            elif score[0] == 2:
+                player2_win_counter += 1
+            else:
+                draws_counter += 1
+
+        print("Player 1 wins", player1_win_counter, "times")
+        print("Player 2 wins", player2_win_counter, "times")
+        print("Draw", draws_counter, "times")
+
+
 if __name__ == "__main__":
-    test = Test(3).start()
+    test = Test(10)
+    test.start(variant='probabilistic', verbose=False)
+    test.analyze_scores()
