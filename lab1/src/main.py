@@ -25,7 +25,7 @@ class TicTacDoh(TwoPlayerGame):
         [3, 5, 7],
     ]
 
-    def __init__(self, players: List) -> None:
+    def __init__(self, players: List, variant="probabilistic") -> None:
         """Initializes the game with the players and the board.
 
         Args:
@@ -34,6 +34,8 @@ class TicTacDoh(TwoPlayerGame):
         self.board = np.zeros(9, np.uint8)
         self.players = players
         self.current_player = random.randint(1, 2)
+        self.variant = variant
+        self.do_next_move = True
         print("First player: ", end="")
         print(self.current_player)
 
@@ -51,13 +53,24 @@ class TicTacDoh(TwoPlayerGame):
         Args:
             move (int): The move to be made.
         """
+        # moves = [True, False]
+        # weights = [0.8, 0.2]
+
+        # if self.variant == 'probabilistic':
+        #     move_is_success = random.choices(moves, weights, k=1)[0]
+        # else:
+        #     move_is_success = True
+
+        if self.do_next_move:
+            self.board[move - 1] = self.current_player
+
+    def draw_next_move(self):
         moves = [True, False]
         weights = [0.8, 0.2]
-
-        move_is_success = random.choices(moves, weights, k=1)[0]
-
-        if move_is_success:
-            self.board[move - 1] = self.current_player
+        if self.variant == 'probabilistic':
+            self.do_next_move = random.choices(moves, weights, k=1)[0]
+        else:
+            self.do_next_move = True
 
     def is_over(self) -> bool:
         """Checks if the game is over.
@@ -129,11 +142,30 @@ class TicTacDoh(TwoPlayerGame):
         print("=====================\n")
 
         while not self.is_over():
-            move = self.get_move()
-            self.play_move(move)
+            self.draw_next_move()
+            if self.do_next_move:
+                move = self.get_move()
+                self.play_move(move)
             self.show()
 
         return (self.opponent_index, self.board)
+
+    def play_move(self, move):
+        """
+		Method for playing one move with the current player. After making the move,
+		the current player will change to the next player.
+
+		Parameters
+		-----------
+
+		move:
+		  The move to be played. ``move`` should match an entry in the ``.possibles_moves()`` list.
+		"""
+        result = self.make_move(move)
+
+        self.switch_player()
+        return result
+
 
 class Test:
     
@@ -142,16 +174,20 @@ class Test:
         self.ai_algo = Negamax(6)
         self.scores = []
 
-    def start(self):
+    def start(self, variant='probabilistic'):
         # TODO: Make the players switch between each other after each game - DONE
         # TODO: Switch max_depth between 3 and 6 for each game
         player_1 = AI_Player(self.ai_algo)
         player_2 = AI_Player(self.ai_algo)
 
         for _ in range(self.number_of_games):
-            game = TicTacDoh(players=[player_1, player_2])
+            game = TicTacDoh(players=[player_1, player_2], variant=variant)
             score = game.play()
             self.scores.append(score)
 
+    # def analyze_scores(self):
+
+
+
 if __name__ == "__main__":
-    test = Test(3).start()
+    test = Test(5).start(variant='probabilistic')
