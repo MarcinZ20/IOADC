@@ -1,5 +1,7 @@
 import random
 import numpy as np
+import time
+
 
 from typing import List, Tuple
 from easyAI import Negamax
@@ -34,6 +36,8 @@ class TicTacDoh(TwoPlayerGame):
         self.board = np.zeros(9, np.uint8)
         self.players = players
         self.current_player = random.randint(1, 2)
+        self.av_move_time = 0
+        self.moves_number = 0
         self.variant = variant
         self.move_weights = [0.8, 0.2]
         self.do_next_move = True
@@ -121,6 +125,8 @@ class TicTacDoh(TwoPlayerGame):
 
         print("MOVE BY PLAYER: ", self.opponent_index) # Opponent because we call show after change of the current_player
         print('\n'.join((a, b, e, c, e, d, f)))
+        print('Average move time: ', end='')
+        print(round(self.av_move_time, 5))
         print('\n\n')
 
     def play(self, verbose=True) -> Tuple[int, List[int]]:
@@ -136,7 +142,14 @@ class TicTacDoh(TwoPlayerGame):
         while not self.is_over():
             self.draw_next_move()
             if self.do_next_move:
+                begin = time.time()
                 move = self.get_move()
+                end = time.time()
+                new_time = end-begin
+                old_av_time = self.av_move_time * self.moves_number
+                self.moves_number += 1
+                old_av_time += new_time
+                self.av_move_time = old_av_time / self.moves_number
                 self.play_move(move)
             else:
                 self.switch_player()
@@ -152,7 +165,7 @@ class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Negamax(6)
+        self.ai_algo = Negamax(3)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
