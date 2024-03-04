@@ -66,7 +66,7 @@ class TicTacDoh(TwoPlayerGame):
 
     def draw_next_move(self):
         moves = [True, False]
-        weights = [0.5, 0.5]
+        weights = [0.8, 0.2]
         if self.variant == 'probabilistic':
             self.do_next_move = random.choices(moves, weights, k=1)[0]
         else:
@@ -146,6 +146,8 @@ class TicTacDoh(TwoPlayerGame):
             if self.do_next_move:
                 move = self.get_move()
                 self.play_move(move)
+            else:
+                self.switch_player()
             self.show()
 
         if not self.lose():
@@ -167,6 +169,7 @@ class TicTacDoh(TwoPlayerGame):
         result = self.make_move(move)
 
         self.switch_player()
+        self.do_next_move = True
         return result
 
 
