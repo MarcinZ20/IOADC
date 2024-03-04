@@ -4,7 +4,7 @@ import time
 
 
 from typing import List, Tuple
-from easyAI import Negamax
+from easyAI import Negamax, solve_with_depth_first_search
 from easyAI.Player import AI_Player
 from easyAI.TwoPlayerGame import TwoPlayerGame
 
@@ -123,11 +123,9 @@ class TicTacDoh(TwoPlayerGame):
         e = ('|---+---+---|')
         f = (' ---' *  3 )
 
-        print("MOVE BY PLAYER: ", self.opponent_index) # Opponent because we call show after change of the current_player
+        print("MOVE BY PLAYER:", self.opponent_index) # Opponent because we call show after change of the current_player
         print('\n'.join((a, b, e, c, e, d, f)))
-        print('Average move time: ', end='')
-        print(round(self.av_move_time, 5))
-        print('\n\n')
+        print('Average move time:', round(self.av_move_time, 5), '\n')
 
     def play(self, verbose=True) -> Tuple[int, List[int]]:
         """Starts the game.
@@ -157,15 +155,15 @@ class TicTacDoh(TwoPlayerGame):
                 self.show()
 
         if not self.lose():
-            return (0, self.board)
+            return (0, self.av_move_time, self.board)
         else:
-            return (self.opponent_index, self.board)
+            return (self.opponent_index, self.av_move_time, self.board)
 
 class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Negamax(3)
+        self.ai_algo = Negamax(6)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
@@ -182,14 +180,19 @@ class Test:
         player1_win_counter = 0
         player2_win_counter = 0
         draws_counter = 0
+        avg_move_time = 0
 
         for score in self.scores:
+            avg_move_time += score[1]
             if score[0] == 1:
                 player1_win_counter += 1
             elif score[0] == 2:
                 player2_win_counter += 1
             else:
                 draws_counter += 1
+        avg_move_time /= len(self.scores)
+
+        print("Average move time of all games:", avg_move_time, "\n")
 
         print("Player 1 wins", player1_win_counter, "times")
         print("Player 2 wins", player2_win_counter, "times")
@@ -198,5 +201,5 @@ class Test:
 
 if __name__ == "__main__":
     test = Test(10)
-    test.start(variant='probabilistic', verbose=False)
+    test.start(variant='probabilistic', verbose=True)
     test.analyze_scores()
