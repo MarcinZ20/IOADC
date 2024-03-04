@@ -36,8 +36,8 @@ class TicTacDoh(TwoPlayerGame):
         self.current_player = random.randint(1, 2)
         self.variant = variant
         self.do_next_move = True
-        print("First player: ", end="")
-        print(self.current_player)
+        # print("First player: ", end="")
+        # print(self.current_player)
 
     def possible_moves(self) -> np.ndarray:
         """Returns the possible moves for the current player.
@@ -66,7 +66,7 @@ class TicTacDoh(TwoPlayerGame):
 
     def draw_next_move(self):
         moves = [True, False]
-        weights = [0.8, 0.2]
+        weights = [0.5, 0.5]
         if self.variant == 'probabilistic':
             self.do_next_move = random.choices(moves, weights, k=1)[0]
         else:
@@ -138,8 +138,8 @@ class TicTacDoh(TwoPlayerGame):
             Tuple[int, List[int]]: The winner and the board.
         """
         
-        print("\nPlayer 1: X\nPlayer 2: O")
-        print("=====================\n")
+        # print("\nPlayer 1: X\nPlayer 2: O")
+        # print("=====================\n")
 
         while not self.is_over():
             self.draw_next_move()
@@ -148,7 +148,10 @@ class TicTacDoh(TwoPlayerGame):
                 self.play_move(move)
             self.show()
 
-        return (self.opponent_index, self.board)
+        if not self.lose():
+            return (0, self.board)
+        else:
+            return (self.opponent_index, self.board)
 
     def play_move(self, move):
         """
@@ -185,9 +188,24 @@ class Test:
             score = game.play()
             self.scores.append(score)
 
-    # def analyze_scores(self):
+    def analyze_scores(self):
+        player1_win_counter = 0
+        player2_win_counter = 0
+        draws_counter = 0
 
+        for score in self.scores:
+            if score[0] == 1:
+                player1_win_counter += 1
+            elif score[0] == 2:
+                player2_win_counter += 1
+            else:
+                draws_counter += 1
+        print("Player 1 wins", player1_win_counter, "times")
+        print("Player 2 wins", player2_win_counter, "times")
+        print("Draw", draws_counter, "times")
 
 
 if __name__ == "__main__":
-    test = Test(5).start(variant='probabilistic')
+    test = Test(10)
+    test.start(variant='probabilistic')
+    test.analyze_scores()
