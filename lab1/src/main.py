@@ -35,6 +35,7 @@ class TicTacDoh(TwoPlayerGame):
         self.players = players
         self.current_player = random.randint(1, 2)
         self.variant = variant
+        self.move_weights = [0.8, 0.2]
         self.do_next_move = True
         # print("First player: ", end="")
         # print(self.current_player)
@@ -53,22 +54,13 @@ class TicTacDoh(TwoPlayerGame):
         Args:
             move (int): The move to be made.
         """
-        # moves = [True, False]
-        # weights = [0.8, 0.2]
-
-        # if self.variant == 'probabilistic':
-        #     move_is_success = random.choices(moves, weights, k=1)[0]
-        # else:
-        #     move_is_success = True
-
         if self.do_next_move:
             self.board[move - 1] = self.current_player
 
     def draw_next_move(self):
         moves = [True, False]
-        weights = [0.8, 0.2]
         if self.variant == 'probabilistic':
-            self.do_next_move = random.choices(moves, weights, k=1)[0]
+            self.do_next_move = random.choices(moves, self.move_weights, k=1)[0]
         else:
             self.do_next_move = True
 
@@ -131,7 +123,7 @@ class TicTacDoh(TwoPlayerGame):
         print('\n'.join((a, b, e, c, e, d, f)))
         print('\n\n')
 
-    def play(self) -> Tuple[int, List[int]]:
+    def play(self, verbose=True) -> Tuple[int, List[int]]:
         """Starts the game.
 
         Returns:
@@ -148,30 +140,13 @@ class TicTacDoh(TwoPlayerGame):
                 self.play_move(move)
             else:
                 self.switch_player()
-            self.show()
+            if verbose:
+                self.show()
 
         if not self.lose():
             return (0, self.board)
         else:
             return (self.opponent_index, self.board)
-
-    def play_move(self, move):
-        """
-		Method for playing one move with the current player. After making the move,
-		the current player will change to the next player.
-
-		Parameters
-		-----------
-
-		move:
-		  The move to be played. ``move`` should match an entry in the ``.possibles_moves()`` list.
-		"""
-        result = self.make_move(move)
-
-        self.switch_player()
-        self.do_next_move = True
-        return result
-
 
 class Test:
     
@@ -180,15 +155,14 @@ class Test:
         self.ai_algo = Negamax(6)
         self.scores = []
 
-    def start(self, variant='probabilistic'):
-        # TODO: Make the players switch between each other after each game - DONE
+    def start(self, variant='probabilistic', verbose=True):
         # TODO: Switch max_depth between 3 and 6 for each game
         player_1 = AI_Player(self.ai_algo)
         player_2 = AI_Player(self.ai_algo)
 
         for _ in range(self.number_of_games):
             game = TicTacDoh(players=[player_1, player_2], variant=variant)
-            score = game.play()
+            score = game.play(verbose=verbose)
             self.scores.append(score)
 
     def analyze_scores(self):
@@ -203,6 +177,7 @@ class Test:
                 player2_win_counter += 1
             else:
                 draws_counter += 1
+
         print("Player 1 wins", player1_win_counter, "times")
         print("Player 2 wins", player2_win_counter, "times")
         print("Draw", draws_counter, "times")
@@ -210,5 +185,5 @@ class Test:
 
 if __name__ == "__main__":
     test = Test(10)
-    test.start(variant='probabilistic')
+    test.start(variant='probabilistic', verbose=False)
     test.analyze_scores()
