@@ -5,6 +5,7 @@ import time
 
 from typing import List, Tuple
 from easyAI import Negamax, solve_with_depth_first_search
+from expecti_minimax import ExpectiMinimax
 from easyAI.Player import AI_Player
 from easyAI.TwoPlayerGame import TwoPlayerGame
 
@@ -163,7 +164,8 @@ class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Negamax(6)
+        # self.ai_algo = Negamax(6)
+        self.ai_algo = ExpectiMinimax(6)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
@@ -200,6 +202,6 @@ class Test:
 
 
 if __name__ == "__main__":
-    test = Test(10)
+    test = Test(1)
     test.start(variant='probabilistic', verbose=True)
     test.analyze_scores()
