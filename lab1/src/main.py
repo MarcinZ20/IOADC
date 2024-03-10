@@ -1,10 +1,10 @@
 import random
 import time
 from typing import List, Tuple
-
 import numpy as np
 from abp import Minimax
-from easyAI import Negamax
+from easyAI import Negamax, solve_with_depth_first_search
+from expecti_minimax import ExpectiMinimax
 from easyAI.Player import AI_Player
 from easyAI.TwoPlayerGame import TwoPlayerGame
 
@@ -123,11 +123,9 @@ class TicTacDoh(TwoPlayerGame):
         e = ('|---+---+---|')
         f = (' ---' *  3 )
 
-        print("MOVE BY PLAYER: ", self.opponent_index) # Opponent because we call show after change of the current_player
+        print("MOVE BY PLAYER:", self.opponent_index) # Opponent because we call show after change of the current_player
         print('\n'.join((a, b, e, c, e, d, f)))
-        print('Average move time: ', end='')
-        print(round(self.av_move_time, 5))
-        print('\n\n')
+        print('Average move time:', round(self.av_move_time, 5), '\n')
 
     def play(self, verbose=True) -> Tuple[int, List[int]]:
         """Starts the game.
@@ -157,21 +155,22 @@ class TicTacDoh(TwoPlayerGame):
                 self.show()
 
         if not self.lose():
-            return (0, self.board)
+            return (0, self.av_move_time, self.board)
         else:
-            return (self.opponent_index, self.board)
+            return (self.opponent_index, self.av_move_time, self.board)
 
 class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Minimax(6)
+        self.ai_algo1 = Negamax(6)
+        self.ai_algo2 = Negamax(6)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
         # TODO: Switch max_depth between 3 and 6 for each game
-        player_1 = AI_Player(self.ai_algo)
-        player_2 = AI_Player(self.ai_algo)
+        player_1 = AI_Player(self.ai_algo1)
+        player_2 = AI_Player(self.ai_algo2)
 
         for _ in range(self.number_of_games):
             game = TicTacDoh(players=[player_1, player_2], variant=variant)
@@ -182,14 +181,19 @@ class Test:
         player1_win_counter = 0
         player2_win_counter = 0
         draws_counter = 0
+        avg_move_time = 0
 
         for score in self.scores:
+            avg_move_time += score[1]
             if score[0] == 1:
                 player1_win_counter += 1
             elif score[0] == 2:
                 player2_win_counter += 1
             else:
                 draws_counter += 1
+        avg_move_time /= len(self.scores)
+
+        print("Average move time of all games:", avg_move_time, "\n")
 
         print("Player 1 wins", player1_win_counter, "times")
         print("Player 2 wins", player2_win_counter, "times")
@@ -200,3 +204,5 @@ if __name__ == "__main__":
     test = Test(1)
     test.start(variant='deterministic', verbose=True)
     test.analyze_scores()
+
+
