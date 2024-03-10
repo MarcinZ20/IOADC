@@ -1,9 +1,9 @@
 import random
-import numpy as np
 import time
-
-
 from typing import List, Tuple
+
+import numpy as np
+from abp import Minimax
 from easyAI import Negamax
 from easyAI.Player import AI_Player
 from easyAI.TwoPlayerGame import TwoPlayerGame
@@ -165,7 +165,7 @@ class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Negamax(3)
+        self.ai_algo = Minimax(6)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
