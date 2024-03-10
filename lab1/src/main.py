@@ -197,6 +197,6 @@ class Test:
 
 
 if __name__ == "__main__":
-    test = Test(10)
-    test.start(variant='probabilistic', verbose=False)
+    test = Test(1)
+    test.start(variant='deterministic', verbose=True)
     test.analyze_scores()
