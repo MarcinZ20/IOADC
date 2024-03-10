@@ -165,8 +165,8 @@ class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo1 = Negamax(3)
-        self.ai_algo2 = Negamax(3)
+        self.ai_algo1 = Negamax(6)
+        self.ai_algo2 = Negamax(6)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
@@ -198,6 +198,6 @@ class Test:
 
 
 if __name__ == "__main__":
-    test = Test(10)
-    test.start(variant='probabilistic', verbose=True)
+    test = Test(1)
+    test.start(variant='deterministic', verbose=True)
     test.analyze_scores()
