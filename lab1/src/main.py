@@ -165,13 +165,14 @@ class Test:
     
     def __init__(self, number_of_games: int) -> None:
         self.number_of_games = number_of_games
-        self.ai_algo = Negamax(3)
+        self.ai_algo1 = Negamax(3)
+        self.ai_algo2 = Negamax(3)
         self.scores = []
 
     def start(self, variant='probabilistic', verbose=True):
         # TODO: Switch max_depth between 3 and 6 for each game
-        player_1 = AI_Player(self.ai_algo)
-        player_2 = AI_Player(self.ai_algo)
+        player_1 = AI_Player(self.ai_algo1)
+        player_2 = AI_Player(self.ai_algo2)
 
         for _ in range(self.number_of_games):
             game = TicTacDoh(players=[player_1, player_2], variant=variant)
@@ -198,5 +199,5 @@ class Test:
 
 if __name__ == "__main__":
     test = Test(10)
-    test.start(variant='probabilistic', verbose=False)
+    test.start(variant='probabilistic', verbose=True)
     test.analyze_scores()
