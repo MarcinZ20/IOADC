@@ -1,9 +1,8 @@
-from lab2.aipython.stripsHeuristic import h1
-from stripsForwardPlanner import Forward_STRIPS
-from stripsProblem import *
-from searchBranchAndBound import DF_branch_and_bound
-from searchMPP import SearcherMPP
-import stripsProblem
+from aipython.stripsHeuristic import h1
+from aipython.stripsForwardPlanner import Forward_STRIPS
+from aipython.stripsProblem import *
+from aipython.searchBranchAndBound import DF_branch_and_bound
+from aipython.searchMPP import SearcherMPP
 import time
 
 
