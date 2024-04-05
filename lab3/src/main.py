@@ -3,7 +3,6 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import torch
 import torch.nn as nn
 from torch.distributions.normal import Normal
@@ -66,7 +65,7 @@ class Policy_Network(nn.Module):
 class REINFORCE:
     """REINFORCE algorithm."""
 
-    def __init__(self, obs_space_dims: int, action_space_dims: int):
+    def __init__(self, obs_space_dims: int, action_space_dims: int, net: Policy_Network = None):
         """Initializes an agent that learns a policy via REINFORCE algorithm [1]
         to solve the task at hand (Inverted Pendulum v4).
 
@@ -83,7 +82,10 @@ class REINFORCE:
         self.probs = []  # Stores probability values of the sampled action
         self.rewards = []  # Stores the corresponding rewards
 
-        self.net = Policy_Network(obs_space_dims, action_space_dims)
+        if net is None:
+            self.net = Policy_Network(obs_space_dims, action_space_dims)
+        else:
+            self.net = net
         self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=self.learning_rate)
 
     def sample_action(self, state: np.ndarray) -> float:
@@ -137,18 +139,20 @@ class REINFORCE:
         self.rewards = []
 
 
-env = gym.make("InvertedPendulum-v5", render_mode="human")
-wrapped_env = gym.wrappers.RecordEpisodeStatistics(env, 50)
+def train_agent():
+    # env = gym.make("InvertedPendulum-v5", render_mode="human")
+    env = gym.make("InvertedPendulum-v5")
+    wrapped_env = gym.wrappers.RecordEpisodeStatistics(env, 50)
 
-total_num_episodes = int(5e3)  # Total number of episodes
-# Observation-space
-obs_space_dims = env.observation_space.shape[0]
-# Action-space
-action_space_dims = env.action_space.shape[0]
-rewards_over_seeds = []
+    total_num_episodes = int(8e3)  # Total number of episodes
+    # Observation-space
+    obs_space_dims = env.observation_space.shape[0]
+    # Action-space
+    action_space_dims = env.action_space.shape[0]
 
-for seed in [1, 2, 3, 5, 8]:  # Fibonacci seeds
-    # set seed
+
+    seed = 3  # best results
+
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -184,14 +188,8 @@ for seed in [1, 2, 3, 5, 8]:  # Fibonacci seeds
             avg_reward = int(np.mean(wrapped_env.return_queue))
             print("Episode:", episode, "Average Reward:", avg_reward)
 
-    rewards_over_seeds.append(reward_over_episodes)
+    torch.save(agent.net.state_dict(), "best_model2.pt")
 
-
-rewards_to_plot = [[reward[0] for reward in rewards] for rewards in rewards_over_seeds]
-df1 = pd.DataFrame(rewards_to_plot).melt()
-df1.rename(columns={"variable": "episodes", "value": "reward"}, inplace=True)
-sns.set(style="darkgrid", context="talk", palette="rainbow")
-sns.lineplot(x="episodes", y="reward", data=df1).set(
-    title="REINFORCE for InvertedPendulum-v4"
-)
-plt.show()
+    df1 = pd.Series(reward_over_episodes)
+    df1.plot(title="Learning curve", xlabel="episodes", ylabel="reward")
+    plt.savefig('learning_curve.png')
