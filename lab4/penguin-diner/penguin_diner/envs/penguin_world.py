@@ -66,6 +66,7 @@ target.
 
 Let us look at the source code of ``GridWorldEnv`` piece by piece:
 """
+import os
 
 # %%
 # Declaration and Initialization
@@ -211,22 +212,30 @@ class PenguinWorld(gym.Env):
         self.target_location2 = self._agent_location
         self.target_location3 = self._agent_location
         self.target_location4 = self._agent_location
-        while np.array_equal(self.target_location1, self._agent_location):
-            self.target_location1 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-        while np.array_equal(self.target_location2, self._agent_location):
-            self.target_location2 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-        while np.array_equal(self.target_location3, self._agent_location):
-            self.target_location3 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-        while np.array_equal(self.target_location4, self._agent_location):
-            self.target_location4 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
+
+        new_location = self.target_location1
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location1 = new_location
+
+        new_location = self.target_location2
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location2 = new_location
+
+        new_location = self.target_location3
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location3 = new_location
+
+        new_location = self.target_location4
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location4 = new_location
 
         observation = self._get_obs()
         info = self._get_info()
@@ -265,26 +274,34 @@ class PenguinWorld(gym.Env):
         reward = 1 if terminated else 0  # Binary sparse rewards
         observation = self._get_obs()
         info = self._get_info()
+
         if np.array_equal(self._agent_location, self.target_location1):
-            while np.array_equal(self.target_location1, self._agent_location):
-                self.target_location1 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location1
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location1 = new_location
+
         if np.array_equal(self._agent_location, self.target_location2):
-            while np.array_equal(self.target_location2, self._agent_location):
-                self.target_location2 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location2
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location2 = new_location
+
         if np.array_equal(self._agent_location, self.target_location3):
-            while np.array_equal(self.target_location3, self._agent_location):
-                self.target_location3 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location3
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location3 = new_location
+
         if np.array_equal(self._agent_location, self.target_location4):
-            while np.array_equal(self.target_location4, self._agent_location):
-                self.target_location4 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location4
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location4 = new_location
 
         if self.render_mode == "human":
             self._render_frame()
@@ -298,15 +315,15 @@ class PenguinWorld(gym.Env):
     # Here, we are using PyGame for rendering. A similar approach to rendering
     # is used in many environments that are included with Gymnasium and you
     # can use it as a skeleton for your own environments:
-    def check_req_position(self, target_position):
+    def checkReqPosition(self, target_position) -> bool:
         if np.array_equal(self.target_location1, target_position) \
                 or np.array_equal(self.target_location2, target_position)\
                 or np.array_equal(self.target_location3, target_position) \
-                or np.array_equal(self.target_location4, target_position):
-            return 0
-        else:
+                or np.array_equal(self.target_location4, target_position)\
+                or np.array_equal(self._agent_location, target_position):
             return 1
-    #     TODO improvement
+        else:
+            return 0
 
     def render(self):
         if self.render_mode == "rgb_array":
@@ -323,51 +340,50 @@ class PenguinWorld(gym.Env):
             self.clock = pygame.time.Clock()
 
         canvas = pygame.Surface((self.window_size, self.window_size))
-        canvas.fill((255, 255, 255))
+
+        image = pygame.image.load(os.path.join('img', 'background.png'))
+        scaled_image = pygame.transform.scale(image, (self.window_size, self.window_size))
+        canvas.blit(scaled_image, (0, 0))
+
+        # canvas.fill((255, 255, 255))
         pix_square_size = (
                 self.window_size / self.size
         )  # The size of a single grid square in pixels
 
         # First we draw the target
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location1,
-                (pix_square_size, pix_square_size),
-            ),
-        )
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location2,
-                (pix_square_size, pix_square_size),
-            ),
-        )
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location3,
-                (pix_square_size, pix_square_size),
-            ),
-        )
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location4,
-                (pix_square_size, pix_square_size),
-            ),
-        )
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location1)
+        # pygame.draw.rect(
+        #     canvas,
+        #     (255, 0, 0),
+        #     pygame.Rect(
+        #         pix_square_size * self.target_location1,
+        #         (pix_square_size, pix_square_size),
+        #     ),
+        # )
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location2)
+
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location3)
+
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location4)
+
         # Now we draw the agent
-        pygame.draw.circle(
-            canvas,
-            (0, 0, 255),
-            (self._agent_location + 0.5) * pix_square_size,
-            pix_square_size / 3,
-        )
+        # pygame.draw.circle(
+        #     canvas,
+        #     (0, 0, 255),
+        #     (self._agent_location + 0.5) * pix_square_size,
+        #     pix_square_size / 3,
+        # )
+        image = pygame.image.load(os.path.join('img', 'service.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self._agent_location)
 
         # Finally, add some gridlines
         for x in range(self.size + 1):
@@ -376,14 +392,14 @@ class PenguinWorld(gym.Env):
                 0,
                 (0, pix_square_size * x),
                 (self.window_size, pix_square_size * x),
-                width=3,
+                width=1,
             )
             pygame.draw.line(
                 canvas,
                 0,
                 (pix_square_size * x, 0),
                 (pix_square_size * x, self.window_size),
-                width=3,
+                width=1,
             )
 
         if self.render_mode == "human":
