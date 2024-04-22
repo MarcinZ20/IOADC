@@ -114,7 +114,10 @@ class PenguinWorld(gym.Env):
         self.observation_space = spaces.Dict(
             {
                 "agent": spaces.Box(0, size - 1, shape=(8,), dtype=int),
-                "target": spaces.Box(0, size - 1, shape=(8,), dtype=int),
+                "target1": spaces.Box(0, size - 1, shape=(8,), dtype=int),
+                "target2": spaces.Box(0, size - 1, shape=(8,), dtype=int),
+                "target3": spaces.Box(0, size - 1, shape=(8,), dtype=int),
+                "target4": spaces.Box(0, size - 1, shape=(8,), dtype=int),
             }
         )
 
