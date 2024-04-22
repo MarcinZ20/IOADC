@@ -1,9 +1,10 @@
+# pip install -e penguin-diner
 import penguin_diner
 import gymnasium
 import random
 import time
 
-# pip install -e penguin-diner
+
 env = gymnasium.make('penguin_diner/PenguinWorld-v0', render_mode='human')
 
 

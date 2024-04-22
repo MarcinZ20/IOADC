@@ -157,7 +157,9 @@ class PenguinWorld(gym.Env):
     # ``reset`` and ``step`` separately:
 
     def _get_obs(self):
-        return {"agent": self._agent_location, "target": self.target_location1}
+        return {"agent": self._agent_location, "target1": self.target_location1, "target2": self.target_location2\
+                , "target3": self.target_location3, "target4": self.target_location4}
+    # TODO Check whether works
 
     # %%
     # We can also implement a similar method for the auxiliary information
