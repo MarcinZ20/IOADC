@@ -105,7 +105,8 @@ class GridWorldEnv(gym.Env):
     def __init__(self, render_mode=None, size=5):
         self.target_location4 = None
         self.size = size  # The size of the square grid
-        self.window_size = 1024  # The size of the PyGame window
+        # self.window_size = 1024  # The size of the PyGame window
+        self.window_size = 512
 
         # Observations are dictionaries with the agent's and the target's location.
         # Each location is encoded as an element of {0, ..., `size`}^2, i.e. MultiDiscrete([size, size]).
@@ -458,16 +459,16 @@ class Strategy:
 
                 if event.type == pygame.KEYDOWN:
 
-                    if event.key == pygame.K_1:
+                    if event.key == pygame.K_RIGHT:
                         return 0
 
-                    if event.key == pygame.K_2:
+                    if event.key == pygame.K_DOWN:
                         return 1
 
-                    if event.key == pygame.K_3:
+                    if event.key == pygame.K_LEFT:
                         return 2
 
-                    if event.key == pygame.K_4:
+                    if event.key == pygame.K_UP:
                         return 3
 
     def exec(self, **kwargs):
