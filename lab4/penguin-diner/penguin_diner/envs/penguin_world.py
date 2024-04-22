@@ -99,7 +99,7 @@ import gymnasium as gym
 from gymnasium import spaces
 
 
-class GridWorldEnv(gym.Env):
+class PenguinWorld(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
     def __init__(self, render_mode=None, size=5):
@@ -478,7 +478,7 @@ class Strategy:
 
 if __name__ == '__main__':
 
-    env = GridWorldEnv(render_mode='human')
+    env = PenguinWorld(render_mode='human')
 
     strategy = Strategy('player')
 
