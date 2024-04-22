@@ -66,6 +66,7 @@ target.
 
 Let us look at the source code of ``GridWorldEnv`` piece by piece:
 """
+import os
 
 # %%
 # Declaration and Initialization
@@ -339,51 +340,50 @@ class GridWorldEnv(gym.Env):
             self.clock = pygame.time.Clock()
 
         canvas = pygame.Surface((self.window_size, self.window_size))
-        canvas.fill((255, 255, 255))
+
+        image = pygame.image.load(os.path.join('img', 'background.png'))
+        scaled_image = pygame.transform.scale(image, (self.window_size, self.window_size))
+        canvas.blit(scaled_image, (0, 0))
+
+        # canvas.fill((255, 255, 255))
         pix_square_size = (
                 self.window_size / self.size
         )  # The size of a single grid square in pixels
 
         # First we draw the target
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location1,
-                (pix_square_size, pix_square_size),
-            ),
-        )
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location2,
-                (pix_square_size, pix_square_size),
-            ),
-        )
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location3,
-                (pix_square_size, pix_square_size),
-            ),
-        )
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self.target_location4,
-                (pix_square_size, pix_square_size),
-            ),
-        )
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location1)
+        # pygame.draw.rect(
+        #     canvas,
+        #     (255, 0, 0),
+        #     pygame.Rect(
+        #         pix_square_size * self.target_location1,
+        #         (pix_square_size, pix_square_size),
+        #     ),
+        # )
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location2)
+
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location3)
+
+        image = pygame.image.load(os.path.join('img', 'table.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self.target_location4)
+
         # Now we draw the agent
-        pygame.draw.circle(
-            canvas,
-            (0, 0, 255),
-            (self._agent_location + 0.5) * pix_square_size,
-            pix_square_size / 3,
-        )
+        # pygame.draw.circle(
+        #     canvas,
+        #     (0, 0, 255),
+        #     (self._agent_location + 0.5) * pix_square_size,
+        #     pix_square_size / 3,
+        # )
+        image = pygame.image.load(os.path.join('img', 'service.png'))
+        scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+        canvas.blit(scaled_image, pix_square_size * self._agent_location)
 
         # Finally, add some gridlines
         for x in range(self.size + 1):
@@ -392,14 +392,14 @@ class GridWorldEnv(gym.Env):
                 0,
                 (0, pix_square_size * x),
                 (self.window_size, pix_square_size * x),
-                width=3,
+                width=1,
             )
             pygame.draw.line(
                 canvas,
                 0,
                 (pix_square_size * x, 0),
                 (pix_square_size * x, self.window_size),
-                width=3,
+                width=1,
             )
 
         if self.render_mode == "human":
