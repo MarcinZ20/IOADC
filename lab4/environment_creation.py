@@ -211,22 +211,30 @@ class GridWorldEnv(gym.Env):
         self.target_location2 = self._agent_location
         self.target_location3 = self._agent_location
         self.target_location4 = self._agent_location
-        while np.array_equal(self.target_location1, self._agent_location):
-            self.target_location1 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-        while np.array_equal(self.target_location2, self._agent_location):
-            self.target_location2 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-        while np.array_equal(self.target_location3, self._agent_location):
-            self.target_location3 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
-        while np.array_equal(self.target_location4, self._agent_location):
-            self.target_location4 = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
+
+        new_location = self.target_location1
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location1 = new_location
+
+        new_location = self.target_location2
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location2 = new_location
+
+        new_location = self.target_location3
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location3 = new_location
+
+        new_location = self.target_location4
+        while self.checkReqPosition(new_location):
+            new_location = self.np_random.integers(
+                0, self.size, size=2, dtype=int)
+        self.target_location4 = new_location
 
         observation = self._get_obs()
         info = self._get_info()
@@ -265,26 +273,34 @@ class GridWorldEnv(gym.Env):
         reward = 1 if terminated else 0  # Binary sparse rewards
         observation = self._get_obs()
         info = self._get_info()
+
         if np.array_equal(self._agent_location, self.target_location1):
-            while np.array_equal(self.target_location1, self._agent_location):
-                self.target_location1 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location1
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location1 = new_location
+
         if np.array_equal(self._agent_location, self.target_location2):
-            while np.array_equal(self.target_location2, self._agent_location):
-                self.target_location2 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location2
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location2 = new_location
+
         if np.array_equal(self._agent_location, self.target_location3):
-            while np.array_equal(self.target_location3, self._agent_location):
-                self.target_location3 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location3
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location3 = new_location
+
         if np.array_equal(self._agent_location, self.target_location4):
-            while np.array_equal(self.target_location4, self._agent_location):
-                self.target_location4 = self.np_random.integers(
-                    0, self.size, size=2, dtype=int
-                )
+            new_location = self.target_location4
+            while self.checkReqPosition(new_location):
+                new_location = self.np_random.integers(
+                    0, self.size, size=2, dtype=int)
+            self.target_location4 = new_location
 
         if self.render_mode == "human":
             self._render_frame()
@@ -298,15 +314,15 @@ class GridWorldEnv(gym.Env):
     # Here, we are using PyGame for rendering. A similar approach to rendering
     # is used in many environments that are included with Gymnasium and you
     # can use it as a skeleton for your own environments:
-    def check_req_position(self, target_position):
+    def checkReqPosition(self, target_position) -> bool:
         if np.array_equal(self.target_location1, target_position) \
                 or np.array_equal(self.target_location2, target_position)\
                 or np.array_equal(self.target_location3, target_position) \
-                or np.array_equal(self.target_location4, target_position):
-            return 0
-        else:
+                or np.array_equal(self.target_location4, target_position)\
+                or np.array_equal(self._agent_location, target_position):
             return 1
-    #     TODO improvement
+        else:
+            return 0
 
     def render(self):
         if self.render_mode == "rgb_array":
