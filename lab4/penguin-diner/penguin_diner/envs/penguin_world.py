@@ -104,6 +104,7 @@ class PenguinWorld(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
     def __init__(self, render_mode=None, size=5):
+        self.last_sum_distance = np.inf
         self.target_location4 = None
         self.size = size  # The size of the square grid
         # self.window_size = 1024  # The size of the PyGame window
@@ -162,7 +163,6 @@ class PenguinWorld(gym.Env):
     def _get_obs(self):
         return {"agent": self._agent_location, "target1": self.target_location1, "target2": self.target_location2\
                 , "target3": self.target_location3, "target4": self.target_location4}
-    # TODO Check whether works
 
     # %%
     # We can also implement a similar method for the auxiliary information
@@ -171,8 +171,17 @@ class PenguinWorld(gym.Env):
 
     def _get_info(self):
         return {
-            "distance": np.linalg.norm(
+            "distance1": np.linalg.norm(
                 self._agent_location - self.target_location1, ord=1
+            ),
+            "distance2": np.linalg.norm(
+                self._agent_location - self.target_location2, ord=1
+            ),
+            "distance3": np.linalg.norm(
+                self._agent_location - self.target_location3, ord=1
+            ),
+            "distance4": np.linalg.norm(
+                self._agent_location - self.target_location4, ord=1
             )
         }
 
@@ -276,10 +285,17 @@ class PenguinWorld(gym.Env):
         terminated = np.array_equal(self._agent_location, self.target_location1) or np.array_equal(self._agent_location,
                                                                                                    self.target_location2) or np.array_equal(
             self._agent_location, self.target_location3) or np.array_equal(self._agent_location, self.target_location4)
-        reward = 1 if terminated else 0  # Binary sparse rewards
+        reward = 10 if terminated else 0  # Binary sparse rewards
         observation = self._get_obs()
         info = self._get_info()
-
+        d = info
+        distances_sum = sum(d.values())
+        if not reward:
+            if self.last_sum_distance - distances_sum < 0:
+                reward = 4
+            elif self.last_sum_distance - distances_sum > 0:
+                reward = -1
+        self.last_sum_distance = distances_sum
         if np.array_equal(self._agent_location, self.target_location1):
             new_location = self.target_location1
             while self.checkReqPosition(new_location):
