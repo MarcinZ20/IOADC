@@ -38,15 +38,6 @@ for episode in tqdm(episodes, desc=f"Run {run}/{n_runs} - Episodes", leave=False
 
 	state = state['agent'][0] * 8 + state['agent'][1]
 	state = state * 2 if agent_has_object else state
-	# state = [1,*state['agent'],
-	#          state['agent_has_object'],
-	#          *state['target1'],
-	#          *state['target2'],
-	#          *state['target3'],
-	#          *state['target4'],
-	#          *state['objects_spawn']]
-	# state_str = ''.join(str(int(x)) for x in state)
-	# state_index = int(state_str, 2)
 
 	score = 0
 	step = 0
@@ -65,7 +56,6 @@ for episode in tqdm(episodes, desc=f"Run {run}/{n_runs} - Episodes", leave=False
 
 		new_state = new_state['agent'][0] * 8 + new_state['agent'][1]
 		new_state = new_state * 2 if agent_has_object else new_state
-		# new_state = new_state['agent'][0] * 5 + new_state['agent'][1]
 		states.append(new_state)
 		score += reward
 
@@ -101,13 +91,10 @@ while not done:
 	)
 
 	new_state, reward, terminated, truncated, info = env2.step(action)
-	# print("Reward:", reward)
-	# new_state = new_state['agent'][0] * 5 + new_state['agent'][1]
 	agent_has_object = new_state['agent_has_object']
 
 	new_state = new_state['agent'][0] * 8 + new_state['agent'][1]
 	new_state = new_state * 2 if agent_has_object else new_state
-	print("New state:", new_state)
 	states.append(new_state)
 	score += reward
 
