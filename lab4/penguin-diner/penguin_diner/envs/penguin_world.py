@@ -103,7 +103,7 @@ from gymnasium import spaces
 class PenguinWorld(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
-    def __init__(self, render_mode=None, size=5):
+    def __init__(self, render_mode=None, size=8):
         self.target_location4 = None
         self.size = size  # The size of the square grid
         # self.window_size = 1024  # The size of the PyGame window
@@ -114,10 +114,12 @@ class PenguinWorld(gym.Env):
         self.observation_space = spaces.Dict(
             {
                 "agent": spaces.Box(0, size - 1, shape=(8,), dtype=int),
+                "agent_has_object": spaces.MultiBinary(1),
                 "target1": spaces.Box(0, size - 1, shape=(8,), dtype=int),
                 "target2": spaces.Box(0, size - 1, shape=(8,), dtype=int),
                 "target3": spaces.Box(0, size - 1, shape=(8,), dtype=int),
                 "target4": spaces.Box(0, size - 1, shape=(8,), dtype=int),
+                "objects_spawn": spaces.Box(0, size - 1, shape=(8,), dtype=int)
             }
         )
 
@@ -160,9 +162,8 @@ class PenguinWorld(gym.Env):
     # ``reset`` and ``step`` separately:
 
     def _get_obs(self):
-        return {"agent": self._agent_location, "target1": self.target_location1, "target2": self.target_location2\
-                , "target3": self.target_location3, "target4": self.target_location4}
-    # TODO Check whether works
+        return {"agent": self._agent_location, "agent_has_object": self._agent_has_object, "target1": self.target_location1, "target2": self.target_location2\
+                , "target3": self.target_location3, "target4": self.target_location4, "objects_spawn": self._objects_spawnpoint}
 
     # %%
     # We can also implement a similar method for the auxiliary information
@@ -173,6 +174,9 @@ class PenguinWorld(gym.Env):
         return {
             "distance": np.linalg.norm(
                 self._agent_location - self.target_location1, ord=1
+            ),
+            "dist_to_object_spawnpoint": np.linalg.norm(
+                self._agent_location - self._objects_spawnpoint
             )
         }
 
@@ -210,37 +214,44 @@ class PenguinWorld(gym.Env):
         super().reset(seed=seed)
 
         # Choose the agent's location uniformly at random
-        self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
-
+        # self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
+        self._agent_location = np.array([0, 0])
+        self._agent_has_object = False
+        # print("Agent location:", type(self._agent_location))
         # We will sample the target's location randomly until it does not coincide with the agent's location
-        self.target_location1 = self._agent_location
-        self.target_location2 = self._agent_location
-        self.target_location3 = self._agent_location
-        self.target_location4 = self._agent_location
+        self.target_location1 = np.array([0, 4])
+        self.target_location2 = np.array([1, 2])
+        self.target_location3 = np.array([2, 4])
+        self.target_location4 = np.array([6, 6])
 
-        new_location = self.target_location1
-        while self.checkReqPosition(new_location):
-            new_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int)
-        self.target_location1 = new_location
+        self._objects_spawnpoint = np.array([7, 0])
 
-        new_location = self.target_location2
-        while self.checkReqPosition(new_location):
-            new_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int)
-        self.target_location2 = new_location
+        self.reached_table_counter = 0
+        self.reached_table = False
 
-        new_location = self.target_location3
-        while self.checkReqPosition(new_location):
-            new_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int)
-        self.target_location3 = new_location
-
-        new_location = self.target_location4
-        while self.checkReqPosition(new_location):
-            new_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int)
-        self.target_location4 = new_location
+        # new_location = self.target_location1
+        # while self.checkReqPosition(new_location):
+        #     new_location = self.np_random.integers(
+        #         0, self.size, size=2, dtype=int)
+        # self.target_location1 = new_location
+        #
+        # new_location = self.target_location2
+        # while self.checkReqPosition(new_location):
+        #     new_location = self.np_random.integers(
+        #         0, self.size, size=2, dtype=int)
+        # self.target_location2 = new_location
+        #
+        # new_location = self.target_location3
+        # while self.checkReqPosition(new_location):
+        #     new_location = self.np_random.integers(
+        #         0, self.size, size=2, dtype=int)
+        # self.target_location3 = new_location
+        #
+        # new_location = self.target_location4
+        # while self.checkReqPosition(new_location):
+        #     new_location = self.np_random.integers(
+        #         0, self.size, size=2, dtype=int)
+        # self.target_location4 = new_location
 
         observation = self._get_obs()
         info = self._get_info()
@@ -272,41 +283,64 @@ class PenguinWorld(gym.Env):
         self._agent_location = np.clip(
             self._agent_location + direction, 0, self.size - 1
         )
-        # An episode is done iff the agent has reached the target
-        terminated = np.array_equal(self._agent_location, self.target_location1) or np.array_equal(self._agent_location,
-                                                                                                   self.target_location2) or np.array_equal(
-            self._agent_location, self.target_location3) or np.array_equal(self._agent_location, self.target_location4)
-        reward = 1 if terminated else 0  # Binary sparse rewards
+        # An episode is done if the agent has reached the target
+
+        if np.array_equal(self._agent_location, self._objects_spawnpoint):
+            self._agent_has_object = True
+
+        terminated = False
+
+        for location in [self.target_location1, self.target_location2, self.target_location3, self.target_location4]:
+            if np.array_equal(self._agent_location, location) and self._agent_has_object:
+                # terminated = True
+                self.reached_table = True
+                self.reached_table_counter += 1
+                self._agent_has_object = False
+                break
+
+        # terminated = (np.array_equal(self._agent_location, self.target_location1) or
+        #               np.array_equal(self._agent_location, self.target_location2) or
+        #               np.array_equal(self._agent_location, self.target_location3) or
+        #               np.array_equal(self._agent_location, self.target_location4))
+
+        # reward = 5 if terminated else -2 + self._agent_has_object  # Binary sparse rewards
+        if self.reached_table:
+            reward = 5
+            self.reached_table = False
+        else:
+            reward = -10 + self._agent_has_object + self.reached_table_counter
+
         observation = self._get_obs()
         info = self._get_info()
 
-        if np.array_equal(self._agent_location, self.target_location1):
-            new_location = self.target_location1
-            while self.checkReqPosition(new_location):
-                new_location = self.np_random.integers(
-                    0, self.size, size=2, dtype=int)
-            self.target_location1 = new_location
-
-        if np.array_equal(self._agent_location, self.target_location2):
-            new_location = self.target_location2
-            while self.checkReqPosition(new_location):
-                new_location = self.np_random.integers(
-                    0, self.size, size=2, dtype=int)
-            self.target_location2 = new_location
-
-        if np.array_equal(self._agent_location, self.target_location3):
-            new_location = self.target_location3
-            while self.checkReqPosition(new_location):
-                new_location = self.np_random.integers(
-                    0, self.size, size=2, dtype=int)
-            self.target_location3 = new_location
-
-        if np.array_equal(self._agent_location, self.target_location4):
-            new_location = self.target_location4
-            while self.checkReqPosition(new_location):
-                new_location = self.np_random.integers(
-                    0, self.size, size=2, dtype=int)
-            self.target_location4 = new_location
+        # for location in [self.target_location1, self.target_location2, self.target_location3, self.target_location4]:
+        #     if np.array_equal(self._agent_location, location):
+        #         new_location = location
+        #         while self.checkReqPosition(new_location):
+        #             new_location = self.np_random.integers(
+        #                 0, self.size, size=2, dtype=int)
+        #         self.target_location1 = new_location
+        #
+        # if np.array_equal(self._agent_location, self.target_location2):
+        #     new_location = self.target_location2
+        #     while self.checkReqPosition(new_location):
+        #         new_location = self.np_random.integers(
+        #             0, self.size, size=2, dtype=int)
+        #     self.target_location2 = new_location
+        #
+        # if np.array_equal(self._agent_location, self.target_location3):
+        #     new_location = self.target_location3
+        #     while self.checkReqPosition(new_location):
+        #         new_location = self.np_random.integers(
+        #             0, self.size, size=2, dtype=int)
+        #     self.target_location3 = new_location
+        #
+        # if np.array_equal(self._agent_location, self.target_location4):
+        #     new_location = self.target_location4
+        #     while self.checkReqPosition(new_location):
+        #         new_location = self.np_random.integers(
+        #             0, self.size, size=2, dtype=int)
+        #     self.target_location4 = new_location
 
         if self.render_mode == "human":
             self._render_frame()
@@ -386,9 +420,22 @@ class PenguinWorld(gym.Env):
         #     (self._agent_location + 0.5) * pix_square_size,
         #     pix_square_size / 3,
         # )
-        image = pygame.image.load(os.path.join('img', 'service.png'))
+
+        image = pygame.image.load(os.path.join('img', 'meals_table.png'))
         scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
-        canvas.blit(scaled_image, pix_square_size * self._agent_location)
+        canvas.blit(scaled_image, pix_square_size * self._objects_spawnpoint)
+
+        if self._agent_has_object:
+            image = pygame.image.load(os.path.join('img', 'service_with_object.png'))
+            scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+            canvas.blit(scaled_image, pix_square_size * self._agent_location)
+        else:
+            image = pygame.image.load(os.path.join('img', 'service.png'))
+            scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
+            canvas.blit(scaled_image, pix_square_size * self._agent_location)
+
+
+
 
         # Finally, add some gridlines
         for x in range(self.size + 1):
