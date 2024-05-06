@@ -68,6 +68,11 @@ Let us look at the source code of ``GridWorldEnv`` piece by piece:
 """
 import os
 
+import gymnasium as gym
+import numpy as np
+import pygame
+from gymnasium import spaces
+
 # %%
 # Declaration and Initialization
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,12 +98,6 @@ import os
 # “down”), we will use ``Discrete(4)`` as an action space. Here is the
 # declaration of ``GridWorldEnv`` and the implementation of ``__init__``:
 
-import numpy as np
-import pygame
-
-import gymnasium as gym
-from gymnasium import spaces
-
 
 class PenguinWorld(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
@@ -106,7 +105,6 @@ class PenguinWorld(gym.Env):
     def __init__(self, render_mode=None, size=8):
         self.target_location4 = None
         self.size = size  # The size of the square grid
-        # self.window_size = 1024  # The size of the PyGame window
         self.window_size = 512
 
         # Observations are dictionaries with the agent's and the target's location.
@@ -162,8 +160,13 @@ class PenguinWorld(gym.Env):
     # ``reset`` and ``step`` separately:
 
     def _get_obs(self):
-        return {"agent": self._agent_location, "agent_has_object": self._agent_has_object, "target1": self.target_location1, "target2": self.target_location2\
-                , "target3": self.target_location3, "target4": self.target_location4, "objects_spawn": self._objects_spawnpoint}
+        return {"agent": self._agent_location, 
+                "agent_has_object": self._agent_has_object, 
+                "target1": self.target_location1, 
+                "target2": self.target_location2, 
+                "target3": self.target_location3, 
+                "target4": self.target_location4, 
+                "objects_spawn": self._objects_spawnpoint}
 
     # %%
     # We can also implement a similar method for the auxiliary information
@@ -214,8 +217,8 @@ class PenguinWorld(gym.Env):
         super().reset(seed=seed)
 
         # Choose the agent's location uniformly at random
-        # self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
-        self._agent_location = np.array([0, 0])
+        self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
+        # self._agent_location = np.array([0, 0])
         self._agent_has_object = False
         # print("Agent location:", type(self._agent_location))
         # We will sample the target's location randomly until it does not coincide with the agent's location
@@ -223,6 +226,12 @@ class PenguinWorld(gym.Env):
         self.target_location2 = np.array([1, 2])
         self.target_location3 = np.array([2, 4])
         self.target_location4 = np.array([6, 6])
+
+        # self.target_location1 = self.np_random.integers(0, self.size, size=2, dtype=int)
+        # self.target_location2 = self.np_random.integers(0, self.size, size=2, dtype=int)
+        # self.target_location3 = self.np_random.integers(0, self.size, size=2, dtype=int)
+        # self.target_location4 = self.np_random.integers(0, self.size, size=2, dtype=int)
+        
 
         self._objects_spawnpoint = np.array([7, 0])
 
@@ -296,6 +305,16 @@ class PenguinWorld(gym.Env):
                 self.reached_table = True
                 self.reached_table_counter += 1
                 self._agent_has_object = False
+                # I want the location to disappear when agent reaches it
+                if location[0] == self.target_location1[0] and location[1] == self.target_location1[1]:
+                    self.target_location1 = np.array([0, 0])
+                elif location[0] == self.target_location2[0] and location[1] == self.target_location2[1]:
+                    self.target_location2 = np.array([0, 0])
+                elif location[0] == self.target_location3[0] and location[1] == self.target_location3[1]:
+                    self.target_location3 = np.array([0, 0])
+                elif location[0] == self.target_location4[0] and location[1] == self.target_location4[1]:
+                    self.target_location4 = np.array([0, 0])
+
                 break
 
         # terminated = (np.array_equal(self._agent_location, self.target_location1) or
@@ -393,14 +412,7 @@ class PenguinWorld(gym.Env):
         image = pygame.image.load(os.path.join('img', 'table.png'))
         scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
         canvas.blit(scaled_image, pix_square_size * self.target_location1)
-        # pygame.draw.rect(
-        #     canvas,
-        #     (255, 0, 0),
-        #     pygame.Rect(
-        #         pix_square_size * self.target_location1,
-        #         (pix_square_size, pix_square_size),
-        #     ),
-        # )
+
         image = pygame.image.load(os.path.join('img', 'table.png'))
         scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
         canvas.blit(scaled_image, pix_square_size * self.target_location2)
@@ -414,12 +426,6 @@ class PenguinWorld(gym.Env):
         canvas.blit(scaled_image, pix_square_size * self.target_location4)
 
         # Now we draw the agent
-        # pygame.draw.circle(
-        #     canvas,
-        #     (0, 0, 255),
-        #     (self._agent_location + 0.5) * pix_square_size,
-        #     pix_square_size / 3,
-        # )
 
         image = pygame.image.load(os.path.join('img', 'meals_table.png'))
         scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
@@ -433,9 +439,6 @@ class PenguinWorld(gym.Env):
             image = pygame.image.load(os.path.join('img', 'service.png'))
             scaled_image = pygame.transform.scale(image, (pix_square_size, pix_square_size))
             canvas.blit(scaled_image, pix_square_size * self._agent_location)
-
-
-
 
         # Finally, add some gridlines
         for x in range(self.size + 1):

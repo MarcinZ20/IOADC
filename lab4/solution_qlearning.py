@@ -3,7 +3,7 @@ import random
 
 
 class Qlearning:
-    def __init__(self, learning_rate, gamma, state_size, action_size):
+    def __init__(self, learning_rate: float, gamma: float, state_size: int, action_size: int):
         self.state_size = state_size
         self.action_size = action_size
         self.learning_rate = learning_rate

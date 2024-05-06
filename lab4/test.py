@@ -16,7 +16,7 @@ print(env.spec)
 
 learner = Qlearning(
     learning_rate=0.1,
-    gamma=0.95,
+    gamma=0.7,
     state_size=128,
     action_size=4,
 )
@@ -25,7 +25,7 @@ explorer = EpsilonGreedy(
 )
 learner.reset_qtable()
 states = []
-n_runs = 1000
+n_runs = 10000
 run = 0
 episodes = range(n_runs)
 
