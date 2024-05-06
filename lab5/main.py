@@ -4,7 +4,19 @@ from stable_baselines3 import A2C, SAC
 
 env = gym.make("Humanoid-v4", render_mode="rgb_array")
 
-model = SAC("MlpPolicy", env, verbose=1)
+
+# TODO - set parameters and check results - save in the file / curve
+model = SAC('MlpPolicy', env,
+            learning_rate=3e-10,
+            # buffer_size=int(1e5),
+            # batch_size=64,
+            # gamma=0.99,
+            # ent_coef='auto',
+            # target_update_interval=1,
+            # gradient_steps=64,
+            learning_starts=10000,
+            verbose=1)
+
 model.learn(total_timesteps=10_000)
 
 vec_env = model.get_env()
