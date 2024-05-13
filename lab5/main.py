@@ -89,8 +89,9 @@ def plot_results(log_folder, title="Learning Curve"):
     plt.xlabel("Number of Timesteps")
     plt.ylabel("Rewards")
     plt.title(title + " Smoothed")
+    plt.savefig('curve')
     plt.show()
-    plt.savefig('img/' + log_dir + '.png')
+
 
 env = gym.make("Humanoid-v4", render_mode="rgb_array")
 
@@ -99,14 +100,10 @@ log_dir = "/tmp/gym/"
 env = Monitor(env, log_dir)
 
 model = SAC('MlpPolicy', env,
-            learning_rate=1e-8,
-            # buffer_size=int(1e5),
-            # batch_size=64,
-            gamma=0.79,
-            # ent_coef='auto',
-            # target_update_interval=1,
-            # gradient_steps=64,
+            learning_rate=1e-3,
+            gamma=0.99,
             learning_starts=5000,
+            tau=0.05,
             verbose=1)
 
 os.makedirs(log_dir, exist_ok=True)
