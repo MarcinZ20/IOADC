@@ -2,6 +2,7 @@ import os
 
 import gymnasium as gym
 import cv2
+from keras.src.layers import GaussianNoise
 from stable_baselines3 import A2C, SAC
 from stable_baselines3.common import results_plotter
 from stable_baselines3.common.monitor import load_results, Monitor
@@ -89,6 +90,7 @@ def plot_results(log_folder, title="Learning Curve"):
     plt.ylabel("Rewards")
     plt.title(title + " Smoothed")
     plt.show()
+    plt.savefig('img/' + log_dir + '.png')
 
 env = gym.make("Humanoid-v4", render_mode="rgb_array")
 
@@ -97,10 +99,10 @@ log_dir = "/tmp/gym/"
 env = Monitor(env, log_dir)
 
 model = SAC('MlpPolicy', env,
-            learning_rate=3e-10,
+            learning_rate=1e-8,
             # buffer_size=int(1e5),
             # batch_size=64,
-            gamma=0.59,
+            gamma=0.79,
             # ent_coef='auto',
             # target_update_interval=1,
             # gradient_steps=64,
